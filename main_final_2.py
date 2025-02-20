@@ -137,7 +137,7 @@ def generate_lecture_page():
                 - 롤플레잉을 활용한 고급 프롬프트
 
                 - 연속적인 대화를 위한 프롬프트 설계
-                
+
                 - 의도하지 않은 결과 피하기
                 
                 4부 : 질의응답
@@ -461,7 +461,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                     else:
                                         post_id = result['data']['createPost']['id']
                                         st.success("✅ Bettermode에 게시글이 성공적으로 생성되었습니다!")
-                                        st.markdown(f"[게시글 확인하기](https://community.gpters.org/posts/{post_id})")
+                                        st.markdown(f"[게시글 확인하기](https://www.gpters.org/events/post/{post_id})")
                                 else:
                                     st.error(f"게시글 생성 실패: {response.status_code} - {response.text}")
 
