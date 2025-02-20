@@ -1,0 +1,6 @@
+.venv/*
+# Ignore everything
+*
+
+# Except the poster folder
+!/poster/
