@@ -426,15 +426,15 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                     }
                                 }
 
-                                # 디버깅을 위해 변환된 HTML 출력
-                                st.write("변환된 HTML:")
-                                st.code(styled_html)
+                                # # 디버깅을 위해 변환된 HTML 출력
+                                # st.write("변환된 HTML:")
+                                # st.code(styled_html)
 
-                                # 디버깅을 위해 mutation과 변수 출력
-                                st.write("Mutation 쿼리:")
-                                st.code(mutation)
-                                st.write("Variables:")
-                                st.code(json.dumps(variables, indent=2))
+                                # # 디버깅을 위해 mutation과 변수 출력
+                                # st.write("Mutation 쿼리:")
+                                # st.code(mutation)
+                                # st.write("Variables:")
+                                # st.code(json.dumps(variables, indent=2))
 
                                 # GraphQL API 호출
                                 response = requests.post(
@@ -451,8 +451,8 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                 )
 
                                 # 디버깅을 위해 응답 출력
-                                st.write("API 응답:")
-                                st.write(response.json())
+                                # st.write("API 응답:")
+                                # st.write(response.json())
 
                                 if response.status_code == 200:
                                     result = response.json()
@@ -461,7 +461,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                     else:
                                         post_id = result['data']['createPost']['id']
                                         st.success("✅ Bettermode에 게시글이 성공적으로 생성되었습니다!")
-                                        st.markdown(f"[게시글 확인하기](https://www.gpters.org/events/post/{post_id})")
+                                        st.markdown(f"[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})")
                                         
                                         # 이메일 발송
                                         try:
@@ -476,12 +476,12 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                     "Content-Type": "application/json"
                                                 },
                                                 json={
-                                                    "content": f"{user_name}님이 AI토크 게시글을 생성하셨습니다.",
+                                                    "content": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.\n\n[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})",
                                                     "preview": "",
                                                     "bcc": ["dahye@gpters.org"],
-                                                    "title": "AI토크 게시글 생성",
+                                                    "title": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.",
                                                     "transactionId": transaction_id,
-                                                    "emailId": "AI토크 게시글 생성"
+                                                    "emailId": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다."
                                                 }
                                             )
                                             
