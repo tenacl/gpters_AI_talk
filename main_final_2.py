@@ -95,7 +95,7 @@ def generate_lecture_page():
                 👨🏻‍💼 연사 소개: {speaker_bio}
                 💬 강의 내용 및 목차: {outline}
                 
-                📚 장소 : 온라인 (줌) https://ai.gpters.org/ai_talk
+                📚 장소 : 온라인 (줌) 신청시 온라인 줌 링크를 보내드립니다.
                 📝 참가신청 : https://ai.gpters.org/aitalk_rsvp (작성하시면 링크를 보내드립니다.)
 
                 [예시]
@@ -164,7 +164,7 @@ def generate_lecture_page():
                 "Authorization": f"Bearer {openai.api_key}" 
             },
             data=json.dumps({
-            "model": "gpt-4",
+            "model": "gpt-4o",
             "messages": [
                 {"role": "system", "content": "당신은 SEO에 최적화된 매력적인 제목과 부제목을 생성하는 데 능숙한 AI입니다."},
                 {"role": "user", "content": f"""
@@ -396,7 +396,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
 
                                 # 변수 데이터 준비
                                 variables = {
-                                    "spaceId": "CVUixPQVCxU0",
+                                    "spaceId": "DpzZo3dmHTGH",
                                     "input": {
                                         "postTypeId": "NR49kR6XEqUbEEr",
                                         "mappingFields": [
@@ -462,9 +462,38 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                         post_id = result['data']['createPost']['id']
                                         st.success("✅ Bettermode에 게시글이 성공적으로 생성되었습니다!")
                                         st.markdown(f"[게시글 확인하기](https://www.gpters.org/events/post/{post_id})")
+                                        
+                                        # 이메일 발송
+                                        try:
+                                            # 현재 시간으로 transactionId 생성
+                                            transaction_id = datetime.now().strftime('%y%m%d%H%M%S')
+                                            
+                                            # 이메일 발송 요청
+                                            email_response = requests.post(
+                                                "https://portal.gpters.org/api/internal/emails",
+                                                headers={
+                                                    "x-admin-token": "Kh4IgiwYUpfqFrl+/exW9aYeHFkvyEZKzO7xqV0SJ7I=",
+                                                    "Content-Type": "application/json"
+                                                },
+                                                json={
+                                                    "content": f"{user_name}님이 AI토크 게시글을 생성하셨습니다.",
+                                                    "preview": "",
+                                                    "bcc": ["dahye@gpters.org"],
+                                                    "title": "AI토크 게시글 생성",
+                                                    "transactionId": transaction_id,
+                                                    "emailId": "AI토크 게시글 생성"
+                                                }
+                                            )
+                                            
+                                            if email_response.status_code == 200:
+                                                st.success("✉️ 관리자에게 이메일이 발송되었습니다.")
+                                            else:
+                                                st.warning("⚠️ 이메일 발송에 실패했습니다.")
+                                                
+                                        except Exception as e:
+                                            st.error(f"이메일 발송 중 오류 발생: {str(e)}")
                                 else:
                                     st.error(f"게시글 생성 실패: {response.status_code} - {response.text}")
-
                             except Exception as e:
                                 st.error(f"게시글 생성 중 오류 발생: {str(e)}")
                     else:
