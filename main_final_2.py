@@ -408,12 +408,12 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                             {
                                                 "key": "date_time",
                                                 "type": "date",
-                                                "value": json.dumps(f"{date.strftime('%Y-%m-%d')}T{start_time.strftime('%H:%M')}:00Z")
+                                                "value": json.dumps(f"{date.strftime('%Y-%m-%d')}T{start_time.strftime('%H:%M')}:00+09:00")
                                             },
                                             {
                                                 "key":"end_date",
                                                 "type":"date",
-                                                "value":json.dumps(f"{date.strftime('%Y-%m-%d')}T{end_time.strftime('%H:%M')}:00Z")
+                                                "value":json.dumps(f"{date.strftime('%Y-%m-%d')}T{end_time.strftime('%H:%M')}:00+09:00")
                                             },
                                             {
                                                 "key":"event_link",
