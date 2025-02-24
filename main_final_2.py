@@ -419,6 +419,16 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 "key": "date_time",
                                                 "type": "date",
                                                 "value": json.dumps(f"{date.strftime('%Y-%m-%d')}T{start_time.strftime('%H:%M')}:00Z")
+                                            },
+                                            {
+                                                "key":"end_date",
+                                                "type":"date",
+                                                "value":json.dumps(f"{date.strftime('%Y-%m-%d')}T{end_time.strftime('%H:%M')}:00Z")
+                                            },
+                                            {
+                                                "key":"event_link",
+                                                "type":"text",
+                                                "value":"https://ai.gpters.org/aitalk_rsvp"
                                             }
                                         ],
                                         "publish": True,
