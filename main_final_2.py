@@ -421,7 +421,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 "value": json.dumps(f"{date.strftime('%Y-%m-%d')}T{start_time.strftime('%H:%M')}:00Z")
                                             }
                                         ],
-                                        "privatelyPublished": True,
+                                        "publish": True,
                                         "ownerId": bettermode_user_id
                                     }
                                 }
