@@ -43,9 +43,9 @@ col1, col2, col3 = st.columns(3)
 with col1:
     date = st.date_input("강의 날짜")
 with col2:
-    start_time = st.time_input("시작 시간", datetime.strptime("18:00", "%H:%M").time())
+    start_time = st.time_input("시작 시간", datetime.strptime("18:00", "%H:%M").time(), format="HH:mm")
 with col3:
-    end_time = st.time_input("종료 시간", datetime.strptime("20:00", "%H:%M").time())
+    end_time = st.time_input("종료 시간", datetime.strptime("20:00", "%H:%M").time(), format="HH:mm")
 
 speaker_name = st.text_input("연사 이름", value="클승우")
 speaker_bio = st.text_area("연사 소개", value="""2010년부터 아이폰 앱개발을 시작해서 현재는 AI를 활용한 업무자동화를 연구하고 있습니다.
@@ -77,10 +77,10 @@ def generate_lecture_page():
                 [강의 상세 페이지 포맷]
                 1. 인트로 300자 이상 작성
 
-                2. 강의 날짜를 MM월 DD일, HH:MM - HH:MM PM(AM) 형식으로 수정
+                2. 강의 날짜를 MM월 DD일, HH:MM - HH:MM 형식으로 수정
 
                 3. 예시
-                   📅 강의 날짜: 04월 12일, 06:00 PM - 08:00 PM
+                   📅 강의 날짜: 04월 12일, 18:00 - 20:00
                  
                    📚 장소: 온라인 (줌)
                  
@@ -90,7 +90,7 @@ def generate_lecture_page():
 
                 [입력된 강의 정보]
                 ✏️ 강의 주제: {topic}
-                📅 강의 날짜: {date.strftime('%Y년 %m월 %d일')}, {start_time.strftime('%I:%M %p')} - {end_time.strftime('%I:%M %p')}
+                📅 강의 날짜: {date.strftime('%Y년 %m월 %d일')}, {start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}
                 👨🏻‍🏫 연사 이름: {speaker_name}
                 👨🏻‍💼 연사 소개: {speaker_bio}
                 💬 강의 내용 및 목차: {outline}
@@ -105,7 +105,7 @@ def generate_lecture_page():
 
                 ChatGPT를 단순한 채팅 이상으로 활용하고 싶으신가요? 프롬프트 엔지니어링 기술을 익혀 ChatGPT를 업무에 적극 활용할 수 있습니다. 이 강의에서는 프롬프트 엔지니어링의 기본 개념부터 ChatGPT 활용을 위한 고급 팁까지 모두 다룹니다. ChatGPT 사용의 달인이 되어보세요!
 
-                📅 일시 : 6월 10일 토요일 2:00 - 5:00 PM 
+                📅 일시 : 6월 10일 토요일 14:00 - 17:00
 
                 📚 장소 : 온라인 (Zoom) https://ai.gpters.org/pe_masterclass
                 
@@ -296,6 +296,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                 for record in records:
                     user_name = record['fields'].get('이름', '정보 없음')
                     bettermode_user_id = record['fields'].get('bettermode 유저 id', '')
+                    email = record['fields'].get('메일', '')
                     st.write(f"이름: {user_name}")
                     
                     if bettermode_user_id:
@@ -477,7 +478,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 json={
                                                     "content": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.\n\n[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})",
                                                     "preview": "",
-                                                    "bcc": ["dahye@gpters.org"],
+                                                    "bcc": ["dahye@gpters.org", email],
                                                     "title": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.",
                                                     "transactionId": transaction_id,
                                                     "emailId": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다."
