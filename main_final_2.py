@@ -43,9 +43,9 @@ col1, col2, col3 = st.columns(3)
 with col1:
     date = st.date_input("강의 날짜")
 with col2:
-    start_time = st.time_input("시작 시간", datetime.strptime("18:00", "%H:%M").time(), format="H:mm")
+    start_time = st.time_input("시작 시간", datetime.strptime("18:00", "%H:%M").time())
 with col3:
-    end_time = st.time_input("종료 시간", datetime.strptime("20:00", "%H:%M").time(), format="H:mm")
+    end_time = st.time_input("종료 시간", datetime.strptime("20:00", "%H:%M").time())
 
 speaker_name = st.text_input("연사 이름", value="클승우")
 speaker_bio = st.text_area("연사 소개", value="""2010년부터 아이폰 앱개발을 시작해서 현재는 AI를 활용한 업무자동화를 연구하고 있습니다.
