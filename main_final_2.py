@@ -380,17 +380,6 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                             {content_html}
                                         </article>
                                     </div>
-                                    <div class="flex space-s-2 text-content-subdued items-center empty:hidden basis-full">
-                                        <div class="flex items-center h-7 space-s-3 flex-1">
-                                            <div class="flex-grow min-w-0">
-                                                <div class="flex items-center max-w-full">
-                                                    <div class="text-content-subdued shrink-0 whitespace-nowrap text-sm">
-                                                        {date.strftime('%Y-%m-%d')} {start_time.strftime('%H:%M')}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                                 """
 
