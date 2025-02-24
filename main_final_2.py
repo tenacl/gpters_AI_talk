@@ -428,7 +428,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                             {
                                                 "key":"event_link",
                                                 "type":"text",
-                                                "value":"https://ai.gpters.org/aitalk_rsvp"
+                                                "value":json.dumps("https://ai.gpters.org/aitalk_rsvp")
                                             }
                                         ],
                                         "publish": True,
