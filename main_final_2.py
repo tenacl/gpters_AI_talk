@@ -265,9 +265,19 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
     st.write("게시글 작성자이신 스터디장님의 전화번호를 입력해주세요")
     phone_number = st.text_input("전화번호 (예: 01012345678)")
     
+    # 발표자 정보 입력 필드 추가
+    speaker_info = st.text_input("발표자 정보(스터디장 \###으로 입력해주세요.)")
+    
     if phone_number:
         st.session_state['phone_number'] = phone_number
         st.write(f"입력된 전화번호: {phone_number}")
+        
+        # 발표자 정보 저장
+        if speaker_info:
+            st.session_state['speaker_info'] = speaker_info
+            st.write(f"입력된 발표자 정보: {speaker_info}")
+        else:
+            st.session_state['speaker_info'] = ""
         
         # Airtable API 설정
         api = Api(AIRTABLE_API_KEY)
@@ -406,6 +416,11 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 "key":"event_link",
                                                 "type":"text",
                                                 "value":json.dumps("https://ai.gpters.org/aitalk_rsvp")
+                                            },
+                                            {
+                                                "key":"speaker",
+                                                "type":"text",
+                                                "value":json.dumps(st.session_state.get('speaker_info', ''))
                                             }
                                         ],
                                         "publish": True,
