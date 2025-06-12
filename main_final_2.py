@@ -369,7 +369,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
     phone_number = st.text_input("전화번호 (예: 01012345678)")
     
     # 발표자 정보 입력 필드 추가
-    speaker_info = st.text_input("발표자 정보(스터디장 \###으로 입력해주세요.)")
+    speaker_info = st.text_input("발표자 정보(스터디장 \\###으로 입력해주세요.)")
     
     if phone_number:
         st.session_state['phone_number'] = phone_number
@@ -525,3 +525,73 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 "type":"text",
                                                 "value":json.dumps(st.session_state.get('speaker_info', ''))
                                             }
+                                        ],
+                                        "publish": True,
+                                        "ownerId": bettermode_user_id
+                                    }
+                                }
+
+                                # GraphQL API 호출
+                                response = requests.post(
+                                    "https://portal.gpters.org/api/bettermode/graphql",
+                                    headers={
+                                        "X-Bettermode-Client-Id": BETTERMODE_CLIENT_ID,
+                                        "X-Bettermode-Client-Secret": BETTERMODE_CLIENT_SECRET,
+                                        "Content-Type": "application/json"
+                                    },
+                                    json={
+                                        "query": mutation,
+                                        "variables": variables
+                                    }
+                                )
+
+                                if response.status_code == 200:
+                                    result = response.json()
+                                    if "errors" in result:
+                                        st.error(f"게시글 생성 실패: {result['errors']}")
+                                    else:
+                                        post_id = result['data']['createPost']['id']
+                                        st.success("✅ Bettermode에 게시글이 성공적으로 생성되었습니다! 링크로 접속하시면 게시글 수정이 가능합니다!")
+                                        st.markdown(f"[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})")
+                                        
+                                        # 이메일 발송
+                                        try:
+                                            # 현재 시간으로 transactionId 생성
+                                            transaction_id = datetime.now().strftime('%y%m%d%H%M%S')
+                                            
+                                            # 이메일 발송 요청
+                                            email_response = requests.post(
+                                                "https://portal.gpters.org/api/internal/emails",
+                                                headers={
+                                                    "x-admin-token": "Kh4IgiwYUpfqFrl+/exW9aYeHFkvyEZKzO7xqV0SJ7I=",
+                                                    "Content-Type": "application/json"
+                                                },
+                                                json={
+                                                    "content": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다. 링크로 접속하시면 게시글 수정이 가능합니다!\n\n[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})",
+                                                    "preview": "",
+                                                    "bcc": ["dahye@gpters.org", email],
+                                                    "title": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.",
+                                                    "transactionId": transaction_id,
+                                                    "emailId": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다."
+                                                }
+                                            )
+                                            
+                                            if email_response.status_code == 200:
+                                                st.success("✉️ 관리자에게 이메일이 발송되었습니다.")
+                                            else:
+                                                st.warning("⚠️ 이메일 발송에 실패했습니다.")
+                                                
+                                        except Exception as e:
+                                            st.error(f"이메일 발송 중 오류 발생: {str(e)}")
+                                else:
+                                    st.error(f"게시글 생성 실패: {response.status_code} - {response.text}")
+                            except Exception as e:
+                                st.error(f"게시글 생성 중 오류 발생: {str(e)}")
+                    else:
+                        st.warning("⚠️ Bettermode 사용자 ID가 없습니다. 관리자에게 문의해주세요.")
+            else:
+                st.warning("⚠️ 입력하신 전화번호로 등록된 사용자를 찾을 수 없습니다.")
+        
+        except Exception as e:
+            st.error("Airtable 검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+            st.error(f"오류 내용: {str(e)}")
