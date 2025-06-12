@@ -16,6 +16,24 @@ from dotenv import load_dotenv
 import os
 from pyairtable import Api
 
+hide_github_icon = """
+<style>
+.css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob, .styles_viewerBadge__1yB5_, 
+.viewerBadge_link__1S137, .viewerBadge_text__1JaDK { 
+    display: none; 
+} 
+#MainMenu { 
+    visibility: hidden; 
+} 
+footer { 
+    visibility: hidden; 
+} 
+header { 
+    visibility: hidden; 
+}
+</style>
+"""
+
 load_dotenv()  # .env 파일에서 환경 변수를 불러옵니다.
 openai.api_key = os.getenv('OPENAI_API_KEY')
 AIRTABLE_API_KEY = os.getenv('AIRTABLE_API_KEY')
