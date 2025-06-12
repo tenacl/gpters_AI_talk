@@ -15,7 +15,15 @@ from textwrap import wrap
 from dotenv import load_dotenv
 import os
 from pyairtable import Api
+import re
 
+load_dotenv()  # .env 파일에서 환경 변수를 불러옵니다.
+openai.api_key = os.getenv('OPENAI_API_KEY')
+AIRTABLE_API_KEY = os.getenv('AIRTABLE_API_KEY')
+BETTERMODE_CLIENT_ID = "2ae5ac5e-480a1a1fcdfb"
+BETTERMODE_CLIENT_SECRET = "f3d2027f8dd54b3a9df31e8ca029c98a"
+
+# Streamlit UI 요소 숨기기
 hide_github_icon = """
 <style>
 .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob, .styles_viewerBadge__1yB5_, 
@@ -33,12 +41,7 @@ header {
 }
 </style>
 """
-
-load_dotenv()  # .env 파일에서 환경 변수를 불러옵니다.
-openai.api_key = os.getenv('OPENAI_API_KEY')
-AIRTABLE_API_KEY = os.getenv('AIRTABLE_API_KEY')
-BETTERMODE_CLIENT_ID = "2ae5ac5e-480a1a1fcdfb"
-BETTERMODE_CLIENT_SECRET = "f3d2027f8dd54b3a9df31e8ca029c98a"
+st.markdown(hide_github_icon, unsafe_allow_html=True)
 
 # 페이지 제목 설정
 st.title('AI Talk 자동 생성 프로그램🚀')
@@ -110,7 +113,7 @@ def generate_lecture_page():
 
 4. 아웃트로 작성  
    - 실전 팁이 가득하다는 점을 강조  
-   - “지금 신청하세요!” 같은 캐주얼한 콜투액션 포함
+   - "지금 신청하세요!" 같은 캐주얼한 콜투액션 포함
 
 [입력된 강의 정보]  
 ✏️ 강의 주제: {topic}  
@@ -182,7 +185,21 @@ AI와 함께라면 누구나 프로페셔널한 홍보 콘텐츠를 만들 수 �
 다음 강의 정보를 바탕으로 **사람의 관심을 끌 수 있는 감각적인 제목과 부제목**을 각각 5개씩 제안해주세요.  
 - 제목은 최대 30자, 부제목은 최대 40자 이내로 작성해주세요.  
 - **SEO 키워드 반영**, **클릭 유도**, **감성 자극**, **차별화**를 고려해주세요.  
-- 제목과 부제목은 서로 연결된 조합 형태로 제시해주세요.
+- 다음 형식을 정확히 따라주세요:
+
+[제목]
+1. 첫 번째 제목
+2. 두 번째 제목
+3. 세 번째 제목
+4. 네 번째 제목
+5. 다섯 번째 제목
+
+[부제목]
+1. 첫 번째 부제목
+2. 두 번째 부제목
+3. 세 번째 부제목
+4. 네 번째 부제목
+5. 다섯 번째 부제목
 
 [강의 정보]  
 🧠 강의 주제: {topic}  
@@ -201,17 +218,79 @@ AI와 함께라면 누구나 프로페셔널한 홍보 콘텐츠를 만들 수 �
             title_response_json = title_response.json()
             last_message_content = title_response_json['choices'][0]['message']['content']
 
-            # 응답 내용을 제목과 부제목으로 분리
-            split_content = last_message_content.strip().split('\n\n')
+            # 디버깅을 위한 출력
+            # st.write("API 응답 내용:")
+            # st.code(last_message_content)
+
+            # 제목과 부제목을 파싱하는 개선된 로직
+            titles = []
+            subtitles = []
             
-            if len(split_content) >= 2:
-                # 제목과 부제목이 모두 있는 경우
-                st.session_state['titles'] = split_content[0].split('\n')[:5]
-                st.session_state['subtitles'] = split_content[1].split('\n')[:5]
-            elif len(split_content) == 1:
-                # 제목만 있는 경우, 부제목을 빈 리스트로 설정
-                st.session_state['titles'] = split_content[0].split('\n')[:5]
-                st.session_state['subtitles'] = []
+            # 줄 단위로 분리
+            lines = last_message_content.strip().split('\n')
+            
+            parsing_titles = False
+            parsing_subtitles = False
+            
+            for line in lines:
+                line = line.strip()
+                
+                # 섹션 구분
+                if '[제목]' in line or '제목:' in line:
+                    parsing_titles = True
+                    parsing_subtitles = False
+                    continue
+                elif '[부제목]' in line or '부제목:' in line:
+                    parsing_titles = False
+                    parsing_subtitles = True
+                    continue
+                
+                # 빈 줄 스킵
+                if not line:
+                    continue
+                
+                # 숫자로 시작하는 라인 파싱
+                if parsing_titles and re.match(r'^\d+\.', line):
+                    # 숫자와 점을 제거하고 제목 추출
+                    title = re.sub(r'^\d+\.\s*', '', line).strip()
+                    if title:
+                        titles.append(title)
+                elif parsing_subtitles and re.match(r'^\d+\.', line):
+                    # 숫자와 점을 제거하고 부제목 추출
+                    subtitle = re.sub(r'^\d+\.\s*', '', line).strip()
+                    if subtitle:
+                        subtitles.append(subtitle)
+            
+            # 만약 위 방법으로 파싱이 안 되었다면, 다른 패턴 시도
+            if not titles or not subtitles:
+                # 전체 텍스트를 다시 확인
+                if '제목' in last_message_content and '부제목' in last_message_content:
+                    # 제목 부분 추출
+                    title_section = re.search(r'\[?제목\]?.*?\n(.*?)(?:\[?부제목\]?|$)', last_message_content, re.DOTALL)
+                    if title_section:
+                        title_lines = title_section.group(1).strip().split('\n')
+                        for line in title_lines:
+                            match = re.match(r'^\d+\.\s*(.+)', line.strip())
+                            if match:
+                                titles.append(match.group(1).strip())
+                    
+                    # 부제목 부분 추출
+                    subtitle_section = re.search(r'\[?부제목\]?.*?\n(.*?)$', last_message_content, re.DOTALL)
+                    if subtitle_section:
+                        subtitle_lines = subtitle_section.group(1).strip().split('\n')
+                        for line in subtitle_lines:
+                            match = re.match(r'^\d+\.\s*(.+)', line.strip())
+                            if match:
+                                subtitles.append(match.group(1).strip())
+            
+            # 최종적으로 저장
+            st.session_state['titles'] = titles[:5]  # 최대 5개만
+            st.session_state['subtitles'] = subtitles[:5]  # 최대 5개만
+            
+            # 디버깅 정보
+            # st.write(f"파싱된 제목 개수: {len(st.session_state['titles'])}")
+            # st.write(f"파싱된 부제목 개수: {len(st.session_state['subtitles'])}")
+            
         else:
             st.error(f"API 요청 실패: {title_response.status_code} - {title_response.text}")
 
@@ -233,52 +312,48 @@ st.subheader("제목과 부제목 선택📝")
 st.write('제목과 부제목을 선택하거나, 직접 입력하실 수 있어요')
 
 # 제목 선택
-title_options = st.session_state['titles'] + ['직접 입력']
-title_index = st.selectbox("제목 선택", options=range(len(title_options)), format_func=lambda x: title_options[x] if x < len(title_options) else '')
-
-if title_index == len(title_options) - 1:
-    custom_title = st.text_input("제목 직접 입력")
-
-# 제목 확정 버튼 처리
-if st.button("제목 확정"):
+if st.session_state['titles']:
+    title_options = st.session_state['titles'] + ['직접 입력']
+    title_index = st.selectbox("제목 선택", options=range(len(title_options)), format_func=lambda x: title_options[x] if x < len(title_options) else '')
+    
     if title_index == len(title_options) - 1:
-        selected_title = custom_title  # 사용자가 직접 입력한 제목
-    else:
-        selected_title = st.session_state['titles'][title_index]  # 목록에서 선택한 제목
+        custom_title = st.text_input("제목 직접 입력")
     
-    # 앞의 숫자와 따옴표 삭제
-    if selected_title.startswith(('1.', '2.', '3.', '4.', '5.')):
-        selected_title = selected_title[2:].strip()
-    
-    # 맨 앞과 맨 뒤의 따옴표 삭제
-    selected_title = selected_title.strip('"')
-    
-    st.session_state['selected_title'] = selected_title
+    # 제목 확정 버튼 처리
+    if st.button("제목 확정"):
+        if title_index == len(title_options) - 1:
+            selected_title = custom_title  # 사용자가 직접 입력한 제목
+        else:
+            selected_title = st.session_state['titles'][title_index]  # 목록에서 선택한 제목
+        
+        # 맨 앞과 맨 뒤의 따옴표 삭제
+        selected_title = selected_title.strip('"')
+        
+        st.session_state['selected_title'] = selected_title
+else:
+    st.warning("제목이 생성되지 않았습니다. '강의 소개 페이지 생성' 버튼을 먼저 클릭해주세요.")
 
 # 부제목 선택
-subtitle_options = st.session_state['subtitles'] + ['직접 입력']
-subtitle_index = st.selectbox("부제목 선택", options=range(len(subtitle_options)), format_func=lambda x: subtitle_options[x] if x < len(subtitle_options) else '')
-
-if subtitle_index == len(subtitle_options) - 1:
-    custom_subtitle = st.text_input("부제목 직접 입력")
-
-# 부제목 확정 버튼 처리
-if st.button("부제목 확정"):
+if st.session_state['subtitles']:
+    subtitle_options = st.session_state['subtitles'] + ['직접 입력']
+    subtitle_index = st.selectbox("부제목 선택", options=range(len(subtitle_options)), format_func=lambda x: subtitle_options[x] if x < len(subtitle_options) else '')
+    
     if subtitle_index == len(subtitle_options) - 1:
-        selected_subtitle = custom_subtitle  # 사용자가 직접 입력한 부제목
-    else:
-        selected_subtitle = st.session_state['subtitles'][subtitle_index]  # 목록에서 선택한 부제목
+        custom_subtitle = st.text_input("부제목 직접 입력")
     
-    # 앞의 숫자와 따옴표 삭제
-    if selected_subtitle.startswith(('1.', '2.', '3.', '4.', '5.')):
-        selected_subtitle = selected_subtitle[2:].strip()
-    
-    # 맨 앞과 맨 뒤의 따옴표 삭제
-    selected_subtitle = selected_subtitle.strip('"')
-    
-    st.session_state['selected_subtitle'] = selected_subtitle
-    
-    st.session_state['selected_subtitle'] = selected_subtitle
+    # 부제목 확정 버튼 처리
+    if st.button("부제목 확정"):
+        if subtitle_index == len(subtitle_options) - 1:
+            selected_subtitle = custom_subtitle  # 사용자가 직접 입력한 부제목
+        else:
+            selected_subtitle = st.session_state['subtitles'][subtitle_index]  # 목록에서 선택한 부제목
+        
+        # 맨 앞과 맨 뒤의 따옴표 삭제
+        selected_subtitle = selected_subtitle.strip('"')
+        
+        st.session_state['selected_subtitle'] = selected_subtitle
+else:
+    st.warning("부제목이 생성되지 않았습니다. '강의 소개 페이지 생성' 버튼을 먼저 클릭해주세요.")
 
 # 확정된 제목과 부제목을 표시
 if 'selected_title' in st.session_state:
@@ -450,87 +525,3 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                                                 "type":"text",
                                                 "value":json.dumps(st.session_state.get('speaker_info', ''))
                                             }
-                                        ],
-                                        "publish": True,
-                                        "ownerId": bettermode_user_id
-                                    }
-                                }
-
-                                # # 디버깅을 위해 변환된 HTML 출력
-                                # st.write("변환된 HTML:")
-                                # st.code(styled_html)
-
-                                # # 디버깅을 위해 mutation과 변수 출력
-                                # st.write("Mutation 쿼리:")
-                                # st.code(mutation)
-                                # st.write("Variables:")
-                                # st.code(json.dumps(variables, indent=2))
-
-                                # GraphQL API 호출
-                                response = requests.post(
-                                    "https://portal.gpters.org/api/bettermode/graphql",
-                                    headers={
-                                        "X-Bettermode-Client-Id": BETTERMODE_CLIENT_ID,
-                                        "X-Bettermode-Client-Secret": BETTERMODE_CLIENT_SECRET,
-                                        "Content-Type": "application/json"
-                                    },
-                                    json={
-                                        "query": mutation,
-                                        "variables": variables
-                                    }
-                                )
-
-                                # 디버깅을 위해 응답 출력
-                                # st.write("API 응답:")
-                                # st.write(response.json())
-
-                                if response.status_code == 200:
-                                    result = response.json()
-                                    if "errors" in result:
-                                        st.error(f"게시글 생성 실패: {result['errors']}")
-                                    else:
-                                        post_id = result['data']['createPost']['id']
-                                        st.success("✅ Bettermode에 게시글이 성공적으로 생성되었습니다! 링크로 접속하시면 게시글 수정이 가능합니다!")
-                                        st.markdown(f"[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})")
-                                        
-                                        # 이메일 발송
-                                        try:
-                                            # 현재 시간으로 transactionId 생성
-                                            transaction_id = datetime.now().strftime('%y%m%d%H%M%S')
-                                            
-                                            # 이메일 발송 요청
-                                            email_response = requests.post(
-                                                "https://portal.gpters.org/api/internal/emails",
-                                                headers={
-                                                    "x-admin-token": "Kh4IgiwYUpfqFrl+/exW9aYeHFkvyEZKzO7xqV0SJ7I=",
-                                                    "Content-Type": "application/json"
-                                                },
-                                                json={
-                                                    "content": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다. 링크로 접속하시면 게시글 수정이 가능합니다!\n\n[게시글 확인하기](https://www.gpters.org/ai-study-temp/post/{post_id})",
-                                                    "preview": "",
-                                                    "bcc": ["dahye@gpters.org", email],
-                                                    "title": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다.",
-                                                    "transactionId": transaction_id,
-                                                    "emailId": f"✅ {user_name}님이 AI토크 게시글을 생성하셨습니다."
-                                                }
-                                            )
-                                            
-                                            if email_response.status_code == 200:
-                                                st.success("✉️ 관리자에게 이메일이 발송되었습니다.")
-                                            else:
-                                                st.warning("⚠️ 이메일 발송에 실패했습니다.")
-                                                
-                                        except Exception as e:
-                                            st.error(f"이메일 발송 중 오류 발생: {str(e)}")
-                                else:
-                                    st.error(f"게시글 생성 실패: {response.status_code} - {response.text}")
-                            except Exception as e:
-                                st.error(f"게시글 생성 중 오류 발생: {str(e)}")
-                    else:
-                        st.warning("⚠️ Bettermode 사용자 ID가 없습니다. 관리자에게 문의해주세요.")
-            else:
-                st.warning("⚠️ 입력하신 전화번호로 등록된 사용자를 찾을 수 없습니다.")
-        
-        except Exception as e:
-            st.error("Airtable 검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            st.error(f"오류 내용: {str(e)}")
