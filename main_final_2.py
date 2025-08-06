@@ -395,7 +395,7 @@ if 'selected_title' in st.session_state and 'selected_subtitle' in st.session_st
                 st.success("✅ 등록된 사용자를 찾았습니다!")
                 for record in records:
                     user_name = record['fields'].get('이름', '정보 없음')
-                    bettermode_user_id = record['fields'].get('bettermode 유저 id', '')
+                    bettermode_user_id = record['fields'].get('bettermode_user_id', '')
                     email = record['fields'].get('메일', '')
                     st.write(f"이름: {user_name}")
                     
